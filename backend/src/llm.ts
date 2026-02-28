@@ -2,24 +2,25 @@ import { GoogleGenAI } from "@google/genai";
 import { Groq } from "groq-sdk";
 
 // Initialize AI Providers
-const ai = new GoogleGenAI({ apiKey: "AIzaSyCBGFnfvyNluELE-qi4_p-6-jpVMKJmXHc" });
+const ai = new GoogleGenAI({ apiKey: "AIzaSyD9TioL1ec77u6j47q-O2gNEvIi14Sm2Fw" });
 const groq = new Groq({ apiKey: "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" });
 
 const PROMPT_TEMPLATE = `
-You are a Web3 Risk Analyst for an under-collateralized lending protocol.
-I will provide you with a raw array of Ethereum transactions for a specific wallet address.
+You are a Chain-Agnostic Web3 Risk Analyst for an under-collateralized lending protocol.
+I will provide you with a raw array of transactions for a specific wallet address (either EVM or Algorand).
 
 Your job is to analyze their ENTIRE history and calculate a "BlockVault Financial Reliability Score" (0 to 1000).
 
 Scoring Rules:
 1. Base Score: Start at 500.
-2. Liquidations (-500): If the user was ever liquidated on Aave, Compound, Maker, etc., subtract 500. This is severe.
+2. Liquidations (-500): If the user was ever liquidated on Aave, Compound, Maker, AlgoFi, Folks Finance, etc., subtract 500. This is severe.
 3. Repayments (+300): If the user successfully repaid a DeFi loan, add 300.
 4. Consistent Yield (+100): If the user provided liquidity (LPing) or supplied assets for a long time, add 100.
 5. Wallet Age/Activity (+50): If the wallet has sustained activity over months, add 50.
 
 Once you calculate the score, find EXACTLY ONE transaction that best demonstrates their positive financial reliability.
-This will be used to generate a ZK-SNARK Merkle Storage Proof.
+For EVM, this will be used for a ZK-SNARK Merkle Storage Proof.
+For Algorand, this will be used for an Algorand State Proof.
 
 Return ONLY a strict JSON payload. Do NOT include markdown blocks (\`\`\`json). Do NOT include any explanations.
 
@@ -27,8 +28,8 @@ The JSON MUST have this exact structure:
 {
   "reliabilityScore": 850,
   "riskLevel": "Low",
-  "proofTargetBlock": "0x123abc...",
-  "proofStorageSlot": "0x0000...",
+  "proofTargetBlock": "0x123abc... (OR Algorand Round Integer as string)",
+  "proofStorageSlot": "0x0000... (OR Algorand Transaction ID / App ID)",
   "reasoningSummary": "User repaid a 500 USDC loan on Aave and has no history of liquidations."
 }
 
@@ -60,9 +61,9 @@ export async function extractProofData(address: string, transactions: any[], ret
 
             const parsed = JSON.parse(content);
 
-            // Validate format
-            if (!parsed.proofTargetBlock?.startsWith("0x") || !parsed.proofStorageSlot?.startsWith("0x") || typeof parsed.reliabilityScore !== 'number') {
-                throw new Error("Returned values are missing or not valid Hex strings");
+            // Validate format (relaxed for Algorand non-hex strings)
+            if (!parsed.proofTargetBlock || !parsed.proofStorageSlot || typeof parsed.reliabilityScore !== 'number') {
+                throw new Error("Returned values are missing or invalid format");
             }
 
             return parsed;
@@ -81,8 +82,8 @@ export async function extractProofData(address: string, transactions: any[], ret
                  if (!groqContent) throw new Error("Empty response from Groq");
 
                   const parsed = JSON.parse(groqContent);
-                  if (!parsed.proofTargetBlock?.startsWith("0x") || !parsed.proofStorageSlot?.startsWith("0x") || typeof parsed.reliabilityScore !== 'number') {
-                      throw new Error("Returned values are missing or not valid Hex strings");
+                  if (!parsed.proofTargetBlock || !parsed.proofStorageSlot || typeof parsed.reliabilityScore !== 'number') {
+                      throw new Error("Returned values are missing or invalid format");
                   }
 
                   console.log("[Groq] Fallback successful!");
