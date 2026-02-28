@@ -25,7 +25,7 @@ On EVM chains, smart contracts are limited by the `BLOCKHASH` opcode, which only
 
 BlockVault introduces a novel architecture that uses **Generative AI to index and extract relevant financial history**, and **Rust-based relayers to provide cryptographic Merkle storage proofs**.
 
-This allows lending protocols to issue verifiable "Credit Soulbound Tokens" (SBTs) that unlock under-collateralized loans for trustworthy users. By generating a mathematical proof of past events, BlockVault completely eliminates the need for trusted third-party oracles to verify a user's financial history.
+This allows lending protocols to issue verifiable "Financial Reliability Soulbound Tokens" (SBTs) that unlock under-collateralized loans for trustworthy users. By generating a mathematical proof of past events, BlockVault completely eliminates the need for trusted third-party oracles to verify a user's financial history.
 
 ### The BlockVault Flow: How we solve Smart Contract Amnesia
 
@@ -48,7 +48,7 @@ This allows lending protocols to issue verifiable "Credit Soulbound Tokens" (SBT
   └────────┬────────┘        Node for MPT     └────────────────────┘
            │                 Storage Proof
            │
-           │ (6) Mints Credit SBT
+           │ (6) Mints Reliability SBT
            ▼
   ┌─────────────────┐
   │                 │

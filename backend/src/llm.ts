@@ -9,7 +9,7 @@ const PROMPT_TEMPLATE = `
 You are a Web3 Risk Analyst for an under-collateralized lending protocol.
 I will provide you with a raw array of Ethereum transactions for a specific wallet address.
 
-Your job is to analyze their ENTIRE history and calculate a "BlockVault Credit Score" (0 to 1000).
+Your job is to analyze their ENTIRE history and calculate a "BlockVault Financial Reliability Score" (0 to 1000).
 
 Scoring Rules:
 1. Base Score: Start at 500.
@@ -25,7 +25,7 @@ Return ONLY a strict JSON payload. Do NOT include markdown blocks (\`\`\`json). 
 
 The JSON MUST have this exact structure:
 {
-  "creditScore": 850,
+  "reliabilityScore": 850,
   "riskLevel": "Low",
   "proofTargetBlock": "0x123abc...",
   "proofStorageSlot": "0x0000...",
@@ -37,7 +37,7 @@ Transactions:
 {TRANSACTIONS}
 `;
 
-export async function extractProofData(address: string, transactions: any[], retries = 3): Promise<{creditScore: number, riskLevel: string, proofTargetBlock: string, proofStorageSlot: string, reasoningSummary: string}> {
+export async function extractProofData(address: string, transactions: any[], retries = 3): Promise<{reliabilityScore: number, riskLevel: string, proofTargetBlock: string, proofStorageSlot: string, reasoningSummary: string}> {
     const prompt = PROMPT_TEMPLATE
         .replace("{ADDRESS}", address)
         .replace("{TRANSACTIONS}", JSON.stringify(transactions, null, 2));
@@ -61,7 +61,7 @@ export async function extractProofData(address: string, transactions: any[], ret
             const parsed = JSON.parse(content);
 
             // Validate format
-            if (!parsed.proofTargetBlock?.startsWith("0x") || !parsed.proofStorageSlot?.startsWith("0x") || typeof parsed.creditScore !== 'number') {
+            if (!parsed.proofTargetBlock?.startsWith("0x") || !parsed.proofStorageSlot?.startsWith("0x") || typeof parsed.reliabilityScore !== 'number') {
                 throw new Error("Returned values are missing or not valid Hex strings");
             }
 
@@ -81,7 +81,7 @@ export async function extractProofData(address: string, transactions: any[], ret
                  if (!groqContent) throw new Error("Empty response from Groq");
 
                   const parsed = JSON.parse(groqContent);
-                  if (!parsed.proofTargetBlock?.startsWith("0x") || !parsed.proofStorageSlot?.startsWith("0x") || typeof parsed.creditScore !== 'number') {
+                  if (!parsed.proofTargetBlock?.startsWith("0x") || !parsed.proofStorageSlot?.startsWith("0x") || typeof parsed.reliabilityScore !== 'number') {
                       throw new Error("Returned values are missing or not valid Hex strings");
                   }
 
