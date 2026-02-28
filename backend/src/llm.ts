@@ -30,6 +30,8 @@ The JSON MUST have this exact structure:
   "riskLevel": "Low",
   "proofTargetBlock": "0x123abc... (OR Algorand Round Integer as string)",
   "proofStorageSlot": "0x0000... (OR Algorand Transaction ID / App ID)",
+  "totalRepays": 5,
+  "liquidations": 0,
   "reasoningSummary": "User repaid a 500 USDC loan on Aave and has no history of liquidations."
 }
 
@@ -62,8 +64,8 @@ export async function extractProofData(address: string, transactions: any[], ret
             const parsed = JSON.parse(content);
 
             // Validate format (relaxed for Algorand non-hex strings)
-            if (!parsed.proofTargetBlock || !parsed.proofStorageSlot || typeof parsed.reliabilityScore !== 'number') {
-                throw new Error("Returned values are missing or invalid format");
+            if (!parsed.proofTargetBlock || !parsed.proofStorageSlot || typeof parsed.reliabilityScore !== 'number' || typeof parsed.totalRepays !== 'number' || typeof parsed.liquidations !== 'number') {
+                throw new Error("Returned values are missing or invalid format. Must include totalRepays and liquidations.");
             }
 
             return parsed;
@@ -82,8 +84,8 @@ export async function extractProofData(address: string, transactions: any[], ret
                  if (!groqContent) throw new Error("Empty response from Groq");
 
                   const parsed = JSON.parse(groqContent);
-                  if (!parsed.proofTargetBlock || !parsed.proofStorageSlot || typeof parsed.reliabilityScore !== 'number') {
-                      throw new Error("Returned values are missing or invalid format");
+                  if (!parsed.proofTargetBlock || !parsed.proofStorageSlot || typeof parsed.reliabilityScore !== 'number' || typeof parsed.totalRepays !== 'number' || typeof parsed.liquidations !== 'number') {
+                      throw new Error("Returned values are missing or invalid format. Must include totalRepays and liquidations.");
                   }
 
                   console.log("[Groq] Fallback successful!");
