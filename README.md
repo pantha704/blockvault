@@ -8,6 +8,19 @@ Smart contracts have "amnesia." They can only perceive the current state of the 
 
 On EVM chains, smart contracts are limited by the `BLOCKHASH` opcode, which only has access to the last 256 blocks (~10-15 minutes of history). Trustlessly verifying anything that happened months or years ago requires complex cryptographic workarounds.
 
+### The Problem: Smart Contract "Amnesia"
+
+```text
+  ┌─────────────────┐       (1) "I repaid a loan 1 year ago"   ┌─────────────────┐
+  │                 ├─────────[TRANSACTION 0xOldHash]─────────►│                 │
+  │   User Wallet   │                                          │  Smart Contract │
+  │                 │◄────────[ERROR: STATE NOT FOUND]─────────┤  (Lending Prot) │
+  └─────────────────┘       (2) Contract only sees current     └─────────────────┘
+                                state (last 256 blocks).
+                                "Amnesia" prevents trustless
+                                under-collateralized loans.
+```
+
 ## 💡 The Solution
 
 BlockVault introduces a novel architecture that uses **Generative AI to index and extract relevant financial history**, and **Rust-based relayers to provide cryptographic Merkle storage proofs**.
